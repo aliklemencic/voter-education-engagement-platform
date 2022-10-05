@@ -64,7 +64,7 @@ class OpenStatesAPI:
             json_data = json.loads(result.decode('latin-1'))
             bills_list.append(json_data['results'])
 
-            print(count + "of" + api_call.loop_num + "loops complete.")
+            print(str(count) + "of" + str(api_call.loop_num) + "loops complete.")
             # added in to try to get around API call limits
             time.sleep(1)
 
