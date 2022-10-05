@@ -23,6 +23,7 @@ class OpenStatesAPI:
         :param subjects: (list) list of subjects to filter by
         """
         self.state = state.replace(" ", "%20")
+        self.loop_num = 0
 
     def get_loop_num(self):
         """
@@ -37,6 +38,7 @@ class OpenStatesAPI:
         json_data = json.loads(result.decode('latin-1'))
         count = json_data['pagination']['total_items']
         loop_num = math.ceil(count / 20)
+        self.loop_num = loop_num
 
         return loop_num
 
@@ -74,11 +76,13 @@ def get_data_for_all_states(states):
     :return: list of all bill dictionaries
     """
     all_bills = []
-
+    count = 0
     for state in states:
+        count += 1
         api_call = OpenStatesAPI(state)
         bills = api_call.get_data()
         all_bills += bills
+        print(count + "of" + api_call.loop_num + "loops complete.")
 
     return all_bills
 
