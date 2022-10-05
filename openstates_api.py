@@ -49,6 +49,7 @@ class OpenStatesAPI:
         """
         bills_list = []
         loop_num = self.get_loop_num()
+        count = 0
 
         for page in range(1, loop_num + 1):
             url = self.base_path + self.state + self.pages_path + str(page) + self.end_path
@@ -62,6 +63,7 @@ class OpenStatesAPI:
             json_data = json.loads(result.decode('latin-1'))
             bills_list.append(json_data['results'])
 
+            print(count + "of" + api_call.loop_num + "loops complete.")
             # added in to try to get around API call limits
             time.sleep(1)
 
@@ -76,13 +78,12 @@ def get_data_for_all_states(states):
     :return: list of all bill dictionaries
     """
     all_bills = []
-    count = 0
+
     for state in states:
         count += 1
         api_call = OpenStatesAPI(state)
         bills = api_call.get_data()
         all_bills += bills
-        print(count + "of" + api_call.loop_num + "loops complete.")
 
     return all_bills
 
