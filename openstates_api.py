@@ -34,7 +34,7 @@ class OpenStatesAPI:
             raise ValueError("API call failed")
 
         result = r.text.encode("iso-8859-1")
-        json_data = json.loads(result.decode())
+        json_data = json.loads(result.decode('latin-1'))
         count = json_data['pagination']['total_items']
         loop_num = math.ceil(count / 20)
 
@@ -57,7 +57,7 @@ class OpenStatesAPI:
                 # will need to rethink how we store data and make API calls
 
             result = r.text.encode("iso-8859-1")
-            json_data = json.loads(result.decode())
+            json_data = json.loads(result.decode('latin-1'))
             bills_list.append(json_data['results'])
 
             # added in to try to get around API call limits
