@@ -52,6 +52,7 @@ class OpenStatesAPI:
         count = 0
 
         for page in range(1, loop_num + 1):
+            count += 1
             url = self.base_path + self.state + self.pages_path + str(page) + self.end_path
             r = requests.get(url)
             if r.status_code != 200:
@@ -80,7 +81,6 @@ def get_data_for_all_states(states):
     all_bills = []
 
     for state in states:
-        count += 1
         api_call = OpenStatesAPI(state)
         bills = api_call.get_data()
         all_bills += bills
