@@ -15,21 +15,21 @@ def get_lcv_data():
             if "tableHeader" in str(span):
                 continue
             if "mocName" in str(span):
-                member['Name'] = span.text
+                member['name'] = span.text
                 for a in span.find_all('a'):
-                    member['LCV Link'] = url_base + a['href']
+                    member['lcv_link'] = url_base + a['href']
             elif "mocParty" in str(span):
-                member["Party"] = span.text
+                member["party"] = span.text
             elif "mocState" in str(span):
                 if len(span.text) == 2:
-                    member["Congress"] = "Senate"
-                    member["District"] = None
+                    member["congress"] = "Senate"
+                    member["district"] = None
                 else:
-                    member["Congress"] = "House"
-                    member["District"] = span.text[-2:]
-                member["State"] = span.text[:2]
+                    member["congress"] = "House"
+                    member["district"] = span.text[-2:]
+                member["state"] = span.text[:2]
             elif "mocRating" in str(span):
-                member["Rating"] = span.text
+                member["lcv_rating"] = span.text
             if member not in congress and member:
                 congress.append(member)
 

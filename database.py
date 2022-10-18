@@ -5,7 +5,6 @@ Creates database and makes API calls to Open States and ProPublica.
 import pandas as pd
 import sqlite3
 import openstates_api
-from congress import Congress
 
 
 def get_state_data(state, keywords):
