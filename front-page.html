@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Civic Engagement Recommendation Engine</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Civic Engagement Recommendation Engine</h1>
+    <h2>Test Site</h2>
+
+    <h3>
+        What types of volunteering activities are you looking for?
+    </h3>
+    <input id="like">
+    <h3> 
+        What types of volunteering activities are you not looking for?
+    </h3>
+    <input id = "dont_like">
+    <h3>
+        What city are you looking for opportunities in?
+    </h3>
+    <input id = "city">
+    <h3></h3>
+    <button id="Go-button">
+        Go
+    </button>
+
+    <p id="results">
+    
+    <script>
+    const element = document.getElementById("Go-button");
+    element.addEventListener("click", myFunction);
+    
+    function myFunction() {
+        var like = (document.getElementById("like").value);
+        var dont_like = (document.getElementById("dont_like").value);
+        var city = (document.getElementById("city").value);
+        document.getElementById("results").innerHTML = 
+            "What you like: " + like + "<br />" +
+            "What you don't like: " + dont_like  + "<br />" +
+            "City: " + "We only currently support Chicago" + "<br />" +
+            "Your results here";
+        document.getElementById("like").value = ""
+        document.getElementById("dont_like").value = ""
+        document.getElementById("city").value = ""
+    }
+    </script>
+
+    <p id="footnote">
+        Save your results. <br>
+        Are you an organization? Partner with us to include your opportunities here. 
+    </p>
+</body>
+</html>

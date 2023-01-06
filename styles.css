@@ -1,0 +1,50 @@
+  body {
+    padding-left: 40px;
+    font-family: Arial, sans-serif;
+    background-color: #fff;
+  }
+
+  h1 {
+    background-color: #333;
+    color: #fff;
+    padding: 30px;
+    text-align: left;
+  }
+
+  h3 {
+    color:"black";
+    font-size: 20px;
+    font-weight: bold;
+    text-align: left;
+  }
+  
+  #results {
+    font-size: 13.5px;
+    color:rgb(0,0,0);
+    text-align: left;
+  }
+
+  #footnote {
+    font-size: 13.5px;
+    color:gray;
+    text-align: left;
+  }
+
+  input[type=text] {
+    background-color: white;
+    background-image: url('searchicon.png');
+    background-position: 10px 10px;
+    background-repeat: no-repeat;
+    padding-left: 40px;
+  }
+
+  .button {
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+  }
+ 
