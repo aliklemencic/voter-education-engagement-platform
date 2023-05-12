@@ -1,5 +1,8 @@
 """
 API to connect to OpenStates.
+
+Running into issue with call limits on the API (lines 84-85) and may need to 
+    rethink how we store the data and make the API calls.
 """
 
 import json
@@ -19,10 +22,12 @@ class OpenStatesAPI:
 
     def __init__(self, state, keywords):
         """
-        Constructor.
-        :param state: (str) name of state
-        :param keywords: list of keywords to filter by
-        :param loop_num: (int) number of loops to retrieve all bills
+        Initializes an instance of the `OpenStatesAPI` class.
+
+        Inputs:
+            - state: (str) name of state
+            - keywords: list of keywords to filter by
+            - loop_num: (int) number of loops to retrieve all bills
         """
         self.state = state.replace(" ", "%20")
         self.keywords = keywords
@@ -31,15 +36,23 @@ class OpenStatesAPI:
 
     def build_keyword_path(self):
         """
-        Update the query_path to filter by the keywords given.
+        Updates the query_path to filter by the given keywords.
+
+        Inputs: None
+
+        Returns: Nothing
         """
         for keyword in self.keywords:
             self.query_path += "&q=" + keyword.replace(" ", "%20")
 
     def get_loop_num(self):
         """
-        Determine how many API calls are required to get all data.
-        :return: (int) number of loops required
+        Determines how many API calls are required to get all data.
+        Raises an error if unable to connect to the API.
+
+        Inputs: None
+
+        Returns: (int) number of loops
         """
         url = self.base_path + self.state + self.query_path + self.page_path + '1' + self.end_path
         r = requests.get(url)
@@ -57,7 +70,10 @@ class OpenStatesAPI:
     def get_data(self):
         """
         Makes the API call and retrieves the data as JSON.
-        :return: (list) bill dictionaries
+
+        Inputs: None
+
+        Returns: (list of dicts) list of bill information
         """
         bills_list = []
         loop_num = self.get_loop_num()
@@ -67,9 +83,6 @@ class OpenStatesAPI:
             r = requests.get(url)
             if r.status_code != 200:
                 return bills_list
-                #raise ValueError("API call failed. " + r.reason)
-                # this happens a lot due to call number limits and restricts the ways in which we can make the calls
-                # will need to rethink how we store data and make API calls
 
             result = r.text.encode()
             json_data = json.loads(result.decode())
@@ -84,10 +97,13 @@ class OpenStatesAPI:
 
 def get_data_for_state_and_topic(state, keywords):
     """
-    Function to make an API call to Open States based on the state and keywords given.
-    :param state: (str) state
-    :param keywords: list of keywords
-    :return: list of all bill dictionaries
+    Makes an API call to Open States based on the state and keywords given.
+
+    Inputs:
+        - state: (str) state
+        - keywords: list of keywords
+    
+    Returns: (list of dicts) list of bill information
     """
     all_bills = []
 

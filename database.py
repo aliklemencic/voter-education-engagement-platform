@@ -10,8 +10,11 @@ import openstates_api
 def get_state_data(state, keywords):
     """
     Connects to the Open States API to get data on state bills.
-    :param state_names: list of states
-    :return: Pandas dataframe of bill data for all input states
+
+    Inputs:
+        - state_names: list of states
+    
+    Returns: (Pandas dataframe) bill data for all input states
     """
     state_bills = openstates_api.gget_data_for_state_and_topic(state, keywords)
     state_bills_df = pd.DataFrame(state_bills)
@@ -22,8 +25,12 @@ def get_state_data(state, keywords):
 def create_sql_tables(state_names, keywords, topic):
     """
     Creates an SQL table from the state and national dataframes.
-    :param state_names: list of states
-    :param api_key: (str) API key to connect to ProPublica
+    
+    Inputs:
+        - state_names: list of states
+        - api_key: (str) API key to connect to ProPublica
+    
+    Returns: Nothing
     """
     database_name = topic + 'bill_data.db'
     conn = sqlite3.connect(database_name)
@@ -39,10 +46,19 @@ def create_sql_tables(state_names, keywords, topic):
 
 def run():
     """
-    Runs the above functions for Illinois and the US for climate change related bills.
+    Runs the above functions for Illinois and the U.S. for climate
+    change related bills. Saves the results in an SQL table.
+
+    Inputs: None
+
+    Returns: Nothing
     """
     states = ["Illinois", "US"]
     keywords = ["climate", "environment", "energy"]
     topic = "climate_change"
 
     create_sql_tables(states, keywords, topic)
+
+
+if __name__ == '__main__':
+    run()

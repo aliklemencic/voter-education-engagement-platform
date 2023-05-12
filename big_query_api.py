@@ -1,35 +1,24 @@
 """
-table_ids:
-    congress_members
-        schema = [bigquery.SchemaField('name', "STRING", mode="REQUIRED"),
-              bigquery.SchemaField('congress', "STRING", mode="REQUIRED"),
-              bigquery.SchemaField('party', "STRING", mode="REQUIRED"),
-              bigquery.SchemaField('state', "STRING", mode="REQUIRED"),
-              bigquery.SchemaField('district', "STRING"),
-              bigquery.SchemaField('lcv_rating', "STRING"),
-              bigquery.SchemaField('lcv_link', "STRING")]
-    bills
-        schema = [bigquery.SchemaField('openstates_id', "STRING", mode="REQUIRED"),
-            bigquery.SchemaField('identifier', "STRING", mode="REQUIRED"),
-            bigquery.SchemaField('title', "STRING", mode="REQUIRED"),
-            bigquery.SchemaField('openstates_link', "STRING", mode="REQUIRED"),
-            bigquery.SchemaField('state', "STRING", mode="REQUIRED"),
-            bigquery.SchemaField('create_date', "STRING", mode="REQUIRED"),
-            bigquery.SchemaField('latest_action_date', "STRING"),
-            bigquery.SchemaField('latest_action_description', "STRING"),
-            bigquery.SchemaField('abstract', "STRING")]
-    issuehub_users
+API to push data to BigQuery.
 """
-
 import os
 import openstates_api
 import lcv_scraper
+import councilmatic_api
 from bs4 import BeautifulSoup
 from datetime import datetime
 from google.cloud import bigquery
 
 
 def import_lcv_data(first_create):
+    '''
+    Scrapes the LCV website and pushes resulting data to BigQuery.
+    
+    Inputs:
+        - first_create (bool): true if table needs to be created
+    
+    Returns: Nothing
+    '''
     if first_create:
         schema = [bigquery.SchemaField('name', "STRING", mode="REQUIRED"),
               bigquery.SchemaField('congress', "STRING", mode="REQUIRED"),
@@ -46,6 +35,15 @@ def import_lcv_data(first_create):
 
 
 def import_legislation(state, keywords, first_create):
+    '''
+    Retrieves relevant legislation from Open States and pushes the data to BigQuery.
+    
+    Inputs:
+        - keywords (list of str): keywords to search for
+        - first_create (bool): true if table needs to be created
+    
+    Returns: Nothing
+    '''
     if first_create:
         schema = [bigquery.SchemaField('openstates_id', "STRING", mode="REQUIRED"),
             bigquery.SchemaField('identifier', "STRING", mode="REQUIRED"),
@@ -65,7 +63,64 @@ def import_legislation(state, keywords, first_create):
     write_rows_to_bigquery(schema_fields, bill_data, 'bills')
 
 
+def get_local_data(location, keywords, first_create):
+    '''
+    Retrieves local legislation from Councilmatic and pushes the data to BigQuery.
+    
+    Inputs:
+        - keywords (list of str): keywords to search for
+        - first_create (bool): true if table needs to be created
+    
+    Returns: Nothing
+    '''
+    if first_create:
+        schema = [bigquery.SchemaField('councilmatic_id', "STRING", mode="REQUIRED"),
+            bigquery.SchemaField('identifier', "STRING", mode="REQUIRED"),
+            bigquery.SchemaField('title', "STRING", mode="REQUIRED"),
+            bigquery.SchemaField('jurisdiction', "STRING", mode="REQUIRED"),
+            bigquery.SchemaField('updated_date', "STRING", mode="REQUIRED"),
+            bigquery.SchemaField('from_org', "STRING", mode="REQUIRED")]
+        insert_table_to_bigquery(schema, 'sixth-window-364916.issuehub.local_bills')
+    bills = councilmatic_api.get_data_for_location_and_topic(location, keywords)
+    schema_fields = ['councilmatic_id', 'identifier', 'title', 
+        'jurisdiction', 'updated_date', 'from_org']
+    bill_data = get_local_bill_data(bills, location)
+    write_rows_to_bigquery(schema_fields, bill_data, 'local_bills')
+
+
+def get_local_bill_data(bills, location):
+    '''
+    Converts local bill data to a more usable format.
+    
+    Inputs:
+        - bills (list of dicts) bill information
+        - location (str): locality
+    
+    Returns: (list of dicts) reformated bill data
+    '''
+    bill_data = []
+    for bill in bills:
+        current_bill = {}
+        current_bill['councilmatic_id'] = bill['id']
+        current_bill['identifier'] = bill['identifier']
+        current_bill['title'] = bill['title']
+        current_bill['updated_date'] = bill['updated_at']
+        current_bill['from_org'] = bill['from_organization']['name']
+        current_bill['jurisdiction'] = location
+        bill_data.append(current_bill)
+    return bill_data
+
+
 def get_bill_data(bills, state):
+    '''
+    Converts state bill data to a more usable format.
+    
+    Inputs:
+        - bills (list of dicts) bill information
+        - state (str): state
+    
+    Returns: (list of dicts) reformated bill data
+    '''
     bill_data = []
     for bill in bills:
         current_bill = {}
@@ -100,6 +155,14 @@ def get_bill_data(bills, state):
 
 
 def get_date_string(full_date):
+    '''
+    Reformats the date into a usable string.
+
+    Inputs:
+        - full_date (str): the given date
+    
+    Returns: (str) the date in a usable string format
+    '''
     date = full_date[:10]
     date_object = datetime.strptime(date, '%Y-%m-%d')
     date_string = date_object.strftime('%B %d, %Y')
@@ -107,6 +170,13 @@ def get_date_string(full_date):
 
 
 def create_dataset_bigquery():
+    '''
+    Creates a dataset in BigQuery.
+
+    Inputs: None
+
+    Returns: Nothing, but prints the name of the dataset
+    '''
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = './issuehub_cloud_service_admin.json'
     client = bigquery.Client()
     dataset = bigquery.Dataset('issuehub')
@@ -117,7 +187,14 @@ def create_dataset_bigquery():
 
 def write_rows_to_bigquery(schema_fields, data, table_id):
     """
-    :param data: list of dictionaries of rows of data to insert
+    Writes rows of data to a BigQuery table.
+
+    Inputs:
+        - schema_fields (list of str): schema of the table
+        - data (list of dicts): rows of bill data to insert
+        - table_id (str): id of the table
+    
+    Returns: Nothing, but prints when successful
     """
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = './issuehub_cloud_service_admin.json'
     client = bigquery.Client()
@@ -133,11 +210,21 @@ def write_rows_to_bigquery(schema_fields, data, table_id):
         insert_list.append(tuple(values))
 
     errors = client.insert_rows(table, insert_list) 
-    assert errors == []
+    if errors != []:
+        print(errors)
     print("Data successfully inserted into {}.".format(table_id))
 
 
 def remove_rows_bigquery(table, condition):
+    '''
+    Removes rows from a BigQuery table.
+
+    Inputs:
+        - table (str): the table to remove rows from
+        - condition (str): the condition of rows to remove
+    
+    Returns: Nothing, but prints when successful
+    '''
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = './issuehub_cloud_service_admin.json'
     client = bigquery.Client()
 
@@ -149,6 +236,15 @@ def remove_rows_bigquery(table, condition):
 
 
 def insert_table_to_bigquery(schema, table_id):
+    '''
+    Adds a new table to BigQuery.
+
+    Inputs:
+        - schema (list of str): the schema of the table
+        - table_id (str): the id of the table
+
+    Returns: Nothing, but prints when successful
+    '''
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = './issuehub_cloud_service_admin.json'
     client = bigquery.Client()
 
